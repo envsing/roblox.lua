@@ -1222,7 +1222,22 @@
 		removeESP(player.Name)
 	end))
 
+
+	task.spawn(function()
+		while true do
+			if hitboxEnabled and EntitiesFolder then
+				for _, entity in ipairs(EntitiesFolder:GetChildren()) do
+					if entity:IsA("Model") and not hitboxBoxes[entity] and not shouldIgnoreHitboxName(entity.Name) then
+						createHitboxForModel(entity)
+					end
+				end
+			end
+			task.wait(1)
+		end
+	end)
+
 	if not espLoopRunning then
+
 		espLoopRunning = true
 		task.spawn(function()
 			while espLoopRunning do
@@ -1237,4 +1252,3 @@
 			end
 		end)
 	end
-
