@@ -895,7 +895,7 @@ local ESPControl = (function()
 			local charStroke = Instance.new("UIStroke")
 			charStroke.Thickness = 1
 			charStroke.Color = Color3.fromRGB(0, 0, 0)
-			charStroke.Transparency = 0.6
+			charStroke.Transparency = 0
 			charStroke.Parent = charName
 
 			local userName = Instance.new("TextLabel")
@@ -904,14 +904,14 @@ local ESPControl = (function()
 			userName.Position = UDim2.new(0, 0, 0, 24)
 			userName.BackgroundTransparency = 1
 			userName.Text = player.Name
-			userName.TextColor3 = Color3.fromRGB(180, 180, 180)
+			userName.TextColor3 = Color3.fromRGB(255, 255, 255)
 			userName.FontFace = FONT_REGULAR
 			userName.TextSize = 25
-			userName.TextStrokeTransparency = 2
+			userName.TextStrokeTransparency = 0
 			userName.Parent = bill
 
 			local userStroke = Instance.new("UIStroke")
-			userStroke.Thickness = 2
+			userStroke.Thickness = 1
 			userStroke.Color = Color3.fromRGB(0, 0, 0)
 			userStroke.Transparency = 0.4
 			userStroke.Parent = userName
@@ -1699,17 +1699,10 @@ VisualsTab:CreateToggle({
 	end,
 })
 
-VisualsTab:CreateToggle({
-	Name = "Ver Corpo Físico da Freya",
-	CurrentValue = true,
-	Callback = function(state)
-		ESPControl:setShowFreyaBody(state)
-	end,
-})
 
 VisualsTab:CreateSlider({
 	Name = "ESP Range",
-	Range = { 100, 2000 },
+	Range = { 100, 1500 },
 	Increment = 50,
 	CurrentValue = 900,
 	Callback = function(value)
@@ -1736,6 +1729,46 @@ MiscTab:CreateButton({
 			Duration = 3,
 			Image = 94733361910796,
 		})
+	end,
+})
+
+local slotBypassEnabled = false
+local slotBypassActive = false
+
+MiscTab:CreateToggle({
+	Name = "Slot Bypass",
+	CurrentValue = false,
+	Callback = function(state)
+		slotBypassEnabled = state
+		if state and not slotBypassActive then
+			slotBypassActive = true
+			pcall(function()
+				local v_u_1 = nil
+				for _, v in pairs(getgc(true)) do
+					if type(v) == "table" and rawget(v, "enablePrompt") then
+						v_u_1 = v
+						break
+					end
+				end
+				if v_u_1 then
+					local originalEnable = v_u_1.enablePrompt
+					v_u_1.enablePrompt = function(texto, confirmar, recusar)
+						if not slotBypassEnabled then
+							return originalEnable(texto, confirmar, recusar)
+						end
+						if confirmar then confirmar() end
+						v_u_1.promptVisible:set(false)
+					end
+					local oldSet = v_u_1.promptVisible.set
+					v_u_1.promptVisible.set = function(self, value)
+						if slotBypassEnabled and value == true then
+							return oldSet(self, false)
+						end
+						return oldSet(self, value)
+					end
+				end
+			end)
+		end
 	end,
 })
 
